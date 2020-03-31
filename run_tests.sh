@@ -18,7 +18,7 @@ echo
 
 if which terry >/dev/null 2>/dev/null; then
   for testfile in `find tests/ -maxdepth 1 -type f -name '*.py' -perm +111`; do
-    echo === $testfile ===
+    echo ====== $testfile ======
     DEBUG=99 "$testfile"
     if [ 0 -eq $? ]; then
       num_passed+=1
