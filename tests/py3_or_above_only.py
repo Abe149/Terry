@@ -1,1 +1,1 @@
-print ("", flush=True)
+print ("HI", flush=True)

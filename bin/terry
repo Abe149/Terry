@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ -z "$1" ]; then
   if [ -w /dev/stderr ]; then
@@ -14,26 +14,42 @@ if [ -z "$2" ]; then
   exit 2
 fi
 
-pythons_to_try=$(realpath $(whereis -b `echo "$1" | sed 's/,/ /g'` | tr ' ' '\n' | grep ^/) 2>/dev/null | sort | uniq)
+# on some BSDs, e.g. Mac OS X 10.6, "readlink" is almost useless and "realpath" is totally absent  :-(
+# <https://stackoverflow.com/questions/1055671/how-can-i-get-the-behavior-of-gnus-readlink-f-on-a-mac> is the source of the Perl one-liner _and_ has lots of alternatives
+function resolve_links {
+  perl -MCwd -le 'print Cwd::abs_path shift' "$1"
+}
+
+find_results=$(find `echo $PATH | tr ':' ' '` -maxdepth 1 | egrep ".*/($1)\$")
+if [ -n "$DEBUG" ] && [ "$DEBUG" -gt 5 ] && [ -w /dev/stderr ]; then
+  echo terry: find_results: $find_results > /dev/stderr
+fi
+
+pythons_to_try=`for a in $find_results; do resolve_links "$a"; done | sort | uniq`
+if [ -n "$DEBUG" ] && [ "$DEBUG" -gt 5 ] && [ -w /dev/stderr ]; then
+  echo terry: pythons_to_try: $pythons_to_try > /dev/stderr
+fi
 
 if [ -z "$pythons_to_try" ]; then
   if [ -w /dev/stderr ]; then
-    echo "No compatible Python interpreters found for specification string \"$1\".  Aborting." > /dev/stderr
+    echo "terry: No compatible Python interpreters found for specification string \"$1\".  Aborting." > /dev/stderr
   fi
   exit 3
 fi
 
 shift
 
-chosen=$(for executable in $(for py in $(sha512sum $pythons_to_try 2>/dev/null | sort | uniq -w128 | sed 's/^.* //'); do echo `$py -c 'import sys; print (sys.version, "//", sys.version_info, "// VALID")' 2>/dev/null` // $py; done | grep VALID | sed "s/^('//" | sort -nr | sed 's,^.*// ,,'); do if $executable -c "compile(open('$1').read(),'','exec')" 2>/dev/null; then echo $executable; break; fi; done)
+# on some BSDs, e.g. Mac OS X 10.6, "uniq" doesn`t have the "-w" option  :-(
+
+chosen=$(for executable in $(for py in $(sha512sum $pythons_to_try 2>/dev/null | sort -u -k1,1 | sed 's/^.* //'); do echo `$py -c 'import sys; print (sys.version, "//", sys.version_info, "// VALID")' 2>/dev/null` // $py; done | grep VALID | sed "s/^('//" | sort -nr | sed 's,^.*// ,,'); do if $executable -c "compile(open('$1').read(),'','exec')" 2>/dev/null; then echo $executable; break; fi; done)
 
 if [ -n "$chosen" ]; then
   if [ -n "$DEBUG" ] && [ "$DEBUG" -gt 1 ] && [ -w /dev/stderr ]; then
-    echo Chosen Python for \"$1\": \"$chosen\" > /dev/stderr
+    echo terry: Chosen Python for \"$1\": \"$chosen\" > /dev/stderr
   fi
 else
   if [ -w /dev/stderr ]; then
-    echo "No compatible Python interpreter found for \"$1\".  Aborting." > /dev/stderr
+    echo "terry: No compatible Python interpreter found for \"$1\".  Aborting." > /dev/stderr
   fi
   exit 4
 fi
