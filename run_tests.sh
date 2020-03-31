@@ -9,7 +9,7 @@ for testfile in `find tests/ -maxdepth 1 -type f -name '*.py'`; do
   if [ 0 -eq $? ]; then
     num_passed+=1
   else
-    echo -e "\033[101m$testfile failed.\033[0m"
+    echo -e "\033[1;31m$testfile failed.\033[0m"
     num_failed+=1
   fi
   echo
@@ -24,7 +24,7 @@ if which terry >/dev/null 2>/dev/null; then
     if [ 0 -eq $? ]; then
       num_passed+=1
     else
-      echo -e "\033[101m$testfile failed.\033[0m"
+      echo -e "\033[1;31m$testfile failed.\033[0m"
       num_failed+=1
     fi
     echo
