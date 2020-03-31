@@ -17,8 +17,15 @@ done
 
 echo
 
+if find / -maxdepth 1 -perm /0 >/dev/null 2>/dev/null; then
+  PERM111='-perm /111' # the new way
+else
+  PERM111='-perm +111' # the old way
+fi
+
+
 if which terry >/dev/null 2>/dev/null; then
-  for testfile in `find tests/ -maxdepth 1 -type f -name '*.py' -perm +111`; do
+  for testfile in `find tests/ -maxdepth 1 -type f -name '*.py' $PERM111`; do
     echo ====== $testfile ======
     DEBUG=99 "$testfile"
     if [ 0 -eq $? ]; then
