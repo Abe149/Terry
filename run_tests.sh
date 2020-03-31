@@ -5,7 +5,7 @@ declare -i num_passed=0
 
 for testfile in `find tests/ -maxdepth 1 -type f`; do
   echo === $testfile ===
-  DEBUG=99 terry 'python([2-9](\.[[:digit:]])?)?' "$testfile"
+  DEBUG=99 ./bin/terry 'python([2-9](\.[[:digit:]])?)?' "$testfile"
   if [ 0 -eq $? ]; then
     num_passed+=1
   else
