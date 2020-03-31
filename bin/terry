@@ -25,7 +25,7 @@ if [ -n "$DEBUG" ] && [ "$DEBUG" -gt 5 ] && [ -w /dev/stderr ]; then
   echo terry: find_results: $find_results > /dev/stderr
 fi
 
-pythons_to_try=`for a in $find_results; do resolve_links "$a"; done | sort | uniq`
+pythons_to_try=`for a in $find_results; do resolve_links "$a"; done | sort -u`
 if [ -n "$DEBUG" ] && [ "$DEBUG" -gt 5 ] && [ -w /dev/stderr ]; then
   echo terry: pythons_to_try: $pythons_to_try > /dev/stderr
 fi
@@ -39,9 +39,7 @@ fi
 
 shift
 
-# on some BSDs, e.g. Mac OS X 10.6, "uniq" doesn`t have the "-w" option  :-(
-
-chosen=$(for executable in $(for py in $(sha512sum $pythons_to_try 2>/dev/null | sort -u -k1,1 | sed 's/^.* //'); do echo `$py -c 'import sys; print (sys.version, "//", sys.version_info, "// VALID")' 2>/dev/null` // $py; done | grep VALID | sed "s/^('//" | sort -nr | sed 's,^.*// ,,'); do if $executable -c "compile(open('$1').read(),'','exec')" 2>/dev/null; then echo $executable; break; fi; done)
+chosen=$(for executable in $(for py in $(sha512sum $pythons_to_try 2>/dev/null | sort -u -k1,1 | sed 's/^.* //'); do echo `$py -c 'import sys; print (sys.version, "//", sys.version_info, "// VALID")' 2>/dev/null` // $py; done | grep VALID | sed "s/^('//" | sort -n -r -k1,1 | sed 's,^.*// ,,'); do if $executable -c "compile(open('$1').read(),'','exec')" 2>/dev/null; then echo $executable; break; fi; done)
 
 if [ -n "$chosen" ]; then
   if [ -n "$DEBUG" ] && [ "$DEBUG" -gt 1 ] && [ -w /dev/stderr ]; then
