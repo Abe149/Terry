@@ -1,2 +1,2 @@
-#!/usr/local/bin/terry python([2-9](\.[[:digit:]]+)?)?
+#!/usr/local/bin/terry python(2(\.[[:digit:]]+)?)?
 print "hi"
