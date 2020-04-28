@@ -37,6 +37,12 @@ if [ -n "$VIRTUAL_ENV" ]; then # VEs do Bad Things™ with symlinks to a/the Pyt
   pythons_to_try=`echo     $find_results                              | sort -u`
 else
   pythons_to_try=`for a in $find_results; do resolve_links "$a"; done | sort -u`
+  if false; then # DANGEROUS feature: when enabled, which is acceptable in non-VE mode _only_, this feature will "optimize" the set of Python interpreters to consider by re-filtering them by their basenames after de-symlinking, but this could result in "bad surprises" like _no_ matches being found when the user gave their script a Terry regex that only takes into account e.g. "python[[:digit:]]" and "python[[:digit:]]\.[[:digit:]]", but one of the potentially-matching [or the _only_ matching!] Python interpreter[s] is actually [i.e. not a symlink] named e.g. "python2m" or "python3.0m" or "python3.1mu" [reminder: there is an implied dollar-sign-as-in-EOL at the end of the Terry regex, and it is there for good reason]
+    if [ -n "$DEBUG" ] && [ "$DEBUG" -gt 6 ] && [ -w /dev/stderr ]; then
+      echo terry: pythons_to_try _before_ refiltering after de-symlinking in non-VE mode: $pythons_to_try > /dev/stderr
+    fi
+    pythons_to_try=`echo $pythons_to_try | tr ' ' '\n' | egrep ".*/($1)\$" | tr '\n' ' '`
+  fi # end of DANGEROUS feature
 fi
 
 if [ -n "$DEBUG" ] && [ "$DEBUG" -gt 5 ] && [ -w /dev/stderr ]; then
