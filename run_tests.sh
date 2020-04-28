@@ -4,7 +4,7 @@ declare -i num_failed=0
 declare -i num_passed=0
 
 for testfile in `find tests/ -maxdepth 1 -type f -name '*.py'`; do
-  echo === $testfile ===
+  echo === testing $testfile using built-in-to-test-runner regex that probably matches _all_ installed Python interpreters ===
   DEBUG=99 ./bin/terry 'python([2-9](\.[[:digit:]])?)?' "$testfile"
   if [ 0 -eq $? ]; then
     num_passed+=1
@@ -26,7 +26,7 @@ fi
 
 if which terry >/dev/null 2>/dev/null; then
   for testfile in `find tests/ -maxdepth 1 -type f -name '*.py' $PERM111`; do
-    echo ====== $testfile ======
+    echo "====== testing $testfile using its shebang line [making the assumption it has one, since it is executable] ======"
     DEBUG=99 "$testfile"
     if [ 0 -eq $? ]; then
       num_passed+=1
