@@ -1,1 +1,1 @@
-print ("HI", flush=True)
+print ("HI", end='\n')
