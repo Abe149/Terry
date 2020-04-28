@@ -5,7 +5,7 @@ declare -i num_passed=0
 
 for testfile in `find tests/ -maxdepth 1 -type f -name '*.py'`; do
   echo === testing $testfile using built-in-to-test-runner regex that probably matches _all_ installed Python interpreters ===
-  DEBUG=99 ./bin/terry 'python([2-9](\.[[:digit:]])?)?' "$testfile"
+  DEBUG=99 ./bin/terry 'python([2-9](\.[[:digit:]])?(m|mu)?)?' "$testfile"
   if [ 0 -eq $? ]; then
     num_passed+=1
   else
