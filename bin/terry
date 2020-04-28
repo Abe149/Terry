@@ -20,12 +20,25 @@ function resolve_links {
   perl -MCwd -le 'print Cwd::abs_path shift' "$1"
 }
 
-find_results=$(find `echo $PATH | tr ':' ' '` -maxdepth 1 | egrep ".*/($1)\$")
+where_to_search="$PATH" # the usual, which should work great _if_ we are _not_ in an active VE
+if [ -n "$VIRTUAL_ENV" ]; then # gotta respect the VE, or else Bad Things™ may happen
+  where_to_search=`echo $PATH | tr : '\n' | grep "^$VIRTUAL_ENV" | tr '\n' :` # _intentionally_ not «grep "^$VIRTUAL_ENV/"» in case the trailing slash is already in the value of "$VIRTUAL_ENV"
+fi
+if [ -n "$DEBUG" ] && [ "$DEBUG" -gt 5 ] && [ -w /dev/stderr ]; then
+  echo "terry: where_to_search: ''$where_to_search''" > /dev/stderr
+fi
+
+find_results=$(find `echo $where_to_search | tr ':' ' '` -maxdepth 1 | egrep ".*/($1)\$")
 if [ -n "$DEBUG" ] && [ "$DEBUG" -gt 5 ] && [ -w /dev/stderr ]; then
   echo terry: find_results: $find_results > /dev/stderr
 fi
 
-pythons_to_try=`for a in $find_results; do resolve_links "$a"; done | sort -u`
+if [ -n "$VIRTUAL_ENV" ]; then # VEs do Bad Things™ with symlinks to a/the Python interpreter, at least as of this writing
+  pythons_to_try=`echo     $find_results                              | sort -u`
+else
+  pythons_to_try=`for a in $find_results; do resolve_links "$a"; done | sort -u`
+fi
+
 if [ -n "$DEBUG" ] && [ "$DEBUG" -gt 5 ] && [ -w /dev/stderr ]; then
   echo terry: pythons_to_try: $pythons_to_try > /dev/stderr
 fi
